@@ -73,7 +73,7 @@ http://localhost:8000
 
 
 ### Anomaly Detection
-![Anomaly Detection](screenshot3.png)
+![Anomaly Detection](https://github.com/furqanshaikh21/AI-Powered-Supply-Chain-Standardization-and-Validation/blob/9293311ade95b7fded9098009d2f2ea514e2a731/Screenshot3.png)
 
 
 ## Technical Details
