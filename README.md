@@ -65,7 +65,7 @@ http://localhost:8000
 ## Screenshots
 
 ### Dashboard Overview
-![Dashboard Overview](screenshot1.png)
+![Dashboard Overview]([screenshot1.png](https://github.com/furqanshaikh21/AI-Powered-Supply-Chain-Standardization-and-Validation/blob/ed79349f9c8501fe2c960916c4f8fd9c4c4cf474/Screenshot1.png))
 
 
 ### Data Validation
