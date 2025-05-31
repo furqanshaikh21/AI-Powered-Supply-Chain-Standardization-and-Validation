@@ -69,7 +69,7 @@ http://localhost:8000
 
 
 ### Data Validation
-![Data Validation](screenshot2.png)
+![Data Validation](https://github.com/furqanshaikh21/AI-Powered-Supply-Chain-Standardization-and-Validation/blob/72f7b4d79dda7ee3d291d5211ac4fbb44301ba11/Screenshot2.png)
 
 
 ### Anomaly Detection
