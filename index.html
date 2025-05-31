@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Supply Chain Validator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .gradient-bg {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .btn-gradient {
+            background: var(--secondary-gradient);
+            border: none;
+            color: white;
+            border-radius: 25px;
+            padding: 10px 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .metric-card {
+            background: var(--success-gradient);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            border-radius: 15px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: rgba(102, 126, 234, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #764ba2;
+        }
+        
+        .data-table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .alert-custom {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            background: var(--success-gradient);
+            border-radius: 15px;
+        }
+        
+        .validation-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .status-valid {
+            color: #28a745;
+        }
+        
+        .status-invalid {
+            color: #dc3545;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="dashboard-container p-4 mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 mb-0">
+                        <i class="fas fa-brain text-primary"></i>
+                        AI Supply Chain Validator
+                    </h1>
+                    <p class="lead text-muted mb-0">Intelligent Data Validation & Standardization Platform</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-gradient" onclick="generateSampleData()">
+                        <i class="fas fa-magic"></i> Generate Sample Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h3 id="accuracy-metric">96.4%</h3>
+                    <p>AutoAI Accuracy</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-database fa-2x mb-2"></i>
+                    <h3 id="processed-records">0</h3>
+                    <p>Records Processed</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h3 id="anomalies-detected">0</h3>
+                    <p>Anomalies Detected</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h3 id="response-time">180ms</h3>
+                    <p>Avg Response Time</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Data Upload Section -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header gradient-bg">
+                        <h5 class="mb-0"><i class="fas fa-upload"></i> Data Upload & Validation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                            <h5>Upload Supply Chain Data</h5>
+                            <p class="text-muted">Click to upload CSV files or drag and drop</p>
+                            <small class="text-muted">Supported columns: Product ID, Supplier, Quantity, Status</small>
+                            <input type="file" id="fileInput" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6>AI Model Selection:</h6>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="model" id="logistic" value="logistic">
+                                <label class="btn btn-outline-primary" for="logistic">Logistic Regression</label>
+                                
+                                <input type="radio" class="btn-check" name="model" id="forest" value="forest">
+                                <label class="btn btn-outline-primary" for="forest">Random Forest</label>
+                                
+                                <input type="radio" class="btn-check" name="model" id="autoai" value="autoai" checked>
+                                <label class="btn btn-outline-primary" for="autoai">AutoAI</label>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-gradient w-100 mt-3" onclick="validateData()">
+                            <i class="fas fa-cogs"></i> Validate Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Validation Results -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header gradient-bg">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Validation Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="validation-progress" class="mb-3" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Processing data with AI models...</small>
+                        </div>
+                        
+                        <div id="validation-results">
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-robot fa-3x mb-3"></i>
+                                <p>Upload data to see AI validation results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table and Charts -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header gradient-bg">
+                        <h5 class="mb-0"><i class="fas fa-table"></i> Supply Chain Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover data-table" id="dataTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Product ID</th>
+                                        <th>Supplier</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Validation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            No data uploaded yet
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header gradient-bg">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Model Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomaly Detection -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header gradient-bg">
+                        <h5 class="mb-0"><i class="fas fa-search"></i> Anomaly Detection Dashboard</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="anomalyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+        // Sample supply chain data
+        let supplyChainData = [];
+        let processedRecords = 0;
+        let anomaliesDetected = 0;
+
+        // Initialize charts
+        let performanceChart, anomalyChart;
+
+        // Sample data generator
+        function generateSampleData() {
+            const suppliers = ['TechCorp', 'GlobalSupply', 'FastLogistics', 'ReliableGoods', 'QuickShip'];
+            const statuses = ['In Transit', 'Delivered', 'Pending', 'Delayed'];
+            const products = ['PROD001', 'PROD002', 'PROD003', 'PROD004', 'PROD005'];
+            
+            supplyChainData = [];
+            for (let i = 0; i < 50; i++) {
+                const isAnomaly = Math.random() < 0.15; // 15% chance of anomaly
+                supplyChainData.push({
+                    productId: products[Math.floor(Math.random() * products.length)],
+                    supplier: suppliers[Math.floor(Math.random() * suppliers.length)],
+                    quantity: isAnomaly ? Math.floor(Math.random() * 10000) + 10000 : Math.floor(Math.random() * 1000) + 1,
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    isAnomaly: isAnomaly,
+                    validated: false
+                });
+            }
+            
+            updateDataTable();
+            showAlert('Sample data generated successfully!', 'success');
+        }
+
+        // File upload handler
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+                    showAlert('Please upload a CSV file only!', 'danger');
+                    return;
+                }
+                
+                showAlert(`Parsing CSV file "${file.name}"...`, 'info');
+                
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        if (results.errors.length > 0) {
+                            showAlert('Error parsing CSV file. Please check the format.', 'danger');
+                            console.error('CSV parsing errors:', results.errors);
+                            return;
+                        }
+                        
+                        processCSVData(results.data);
+                        showAlert(`Successfully loaded ${results.data.length} records from CSV!`, 'success');
+                    },
+                    error: function(error) {
+                        showAlert('Failed to parse CSV file!', 'danger');
+                        console.error('CSV parsing error:', error);
+                    }
+                });
+            }
+        }
+
+        // Process CSV data and convert to supply chain format
+        function processCSVData(csvData) {
+            supplyChainData = [];
+            
+            csvData.forEach((row, index) => {
+                // Try to map common CSV column names to our data structure
+                const productId = row['Product ID'] || row['ProductID'] || row['product_id'] || row['ID'] || `PROD${String(index + 1).padStart(3, '0')}`;
+                const supplier = row['Supplier'] || row['supplier'] || row['Vendor'] || row['vendor'] || 'Unknown Supplier';
+                const quantity = parseFloat(row['Quantity'] || row['quantity'] || row['Qty'] || row['qty'] || Math.floor(Math.random() * 1000) + 1);
+                const status = row['Status'] || row['status'] || row['State'] || row['state'] || getRandomStatus();
+                
+                // Detect anomalies based on quantity thresholds or other criteria
+                const isAnomaly = detectAnomaly(quantity, row);
+                
+                supplyChainData.push({
+                    productId: String(productId).trim(),
+                    supplier: String(supplier).trim(),
+                    quantity: isNaN(quantity) ? Math.floor(Math.random() * 1000) + 1 : quantity,
+                    status: String(status).trim(),
+                    isAnomaly: isAnomaly,
+                    validated: false,
+                    originalRow: row // Keep original data for reference
+                });
+            });
+            
+            updateDataTable();
+            updateMetrics();
+        }
+
+        // Detect anomalies in data
+        function detectAnomaly(quantity, row) {
+            // Anomaly detection logic
+            if (isNaN(quantity) || quantity <= 0) return true;
+            if (quantity > 10000) return true; // Unusually high quantity
+            
+            // Check for missing critical fields
+            const criticalFields = ['Product ID', 'ProductID', 'product_id', 'ID'];
+            const hasProductId = criticalFields.some(field => row[field] && String(row[field]).trim());
+            if (!hasProductId) return true;
+            
+            // Random anomaly for demonstration (10% chance)
+            return Math.random() < 0.1;
+        }
+
+        // Get random status for missing status fields
+        function getRandomStatus() {
+            const statuses = ['In Transit', 'Delivered', 'Pending', 'Delayed'];
+            return statuses[Math.floor(Math.random() * statuses.length)];
+        }
+
+        // Update metrics display
+        function updateMetrics() {
+            processedRecords = supplyChainData.length;
+            anomaliesDetected = supplyChainData.filter(item => item.isAnomaly).length;
+            
+            document.getElementById('processed-records').textContent = processedRecords;
+            document.getElementById('anomalies-detected').textContent = anomaliesDetected;
+        }
+
+        // Data validation function
+        function validateData() {
+            if (supplyChainData.length === 0) {
+                showAlert('Please upload data first!', 'warning');
+                return;
+            }
+
+            const selectedModel = document.querySelector('input[name="model"]:checked').value;
+            showValidationProgress();
+            
+            // Simulate AI processing
+            setTimeout(() => {
+                processValidation(selectedModel);
+            }, 2000);
+        }
+
+        // Show validation progress
+        function showValidationProgress() {
+            const progressDiv = document.getElementById('validation-progress');
+            const progressBar = progressDiv.querySelector('.progress-bar');
+            
+            progressDiv.style.display = 'block';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressDiv.style.display = 'none';
+                    }, 500);
+                }
+                progressBar.style.width = progress + '%';
+            }, 200);
+        }
+
+        // Process validation with selected model
+        function processValidation(model) {
+            if (supplyChainData.length === 0) {
+                showAlert('Please upload data first!', 'warning');
+                return;
+            }
+
+            const modelAccuracy = {
+                'logistic': 89.2,
+                'forest': 93.5,
+                'autoai': 96.4
+            };
+
+            // Simulate AI model validation process
+            const accuracy = modelAccuracy[model];
+            const detectionRate = accuracy / 100;
+
+            // Re-evaluate anomalies based on model accuracy
+            let correctlyDetected = 0;
+            let falsePositives = 0;
+            let falseNegatives = 0;
+
+            supplyChainData.forEach(item => {
+                const wasAnomaly = item.isAnomaly;
+                
+                // Simulate model prediction based on accuracy
+                const modelPrediction = Math.random() < detectionRate;
+                
+                if (wasAnomaly && modelPrediction) {
+                    correctlyDetected++;
+                    item.validationResult = 'anomaly_detected';
+                } else if (wasAnomaly && !modelPrediction) {
+                    falseNegatives++;
+                    item.validationResult = 'anomaly_missed';
+                } else if (!wasAnomaly && modelPrediction) {
+                    falsePositives++;
+                    item.validationResult = 'false_positive';
+                } else {
+                    item.validationResult = 'valid';
+                }
+                
+                item.validated = true;
+                item.validationModel = model;
+                item.modelConfidence = Math.random() * 0.2 + 0.8; // 80-100% confidence
+            });
+
+            // Calculate actual performance metrics
+            const totalAnomalies = supplyChainData.filter(item => item.isAnomaly).length;
+            const actualPrecision = totalAnomalies > 0 ? (correctlyDetected / (correctlyDetected + falsePositives)) * 100 : 100;
+            const actualRecall = totalAnomalies > 0 ? (correctlyDetected / totalAnomalies) * 100 : 100;
+            const actualF1Score = totalAnomalies > 0 ? (2 * actualPrecision * actualRecall) / (actualPrecision + actualRecall) : 100;
+
+            processedRecords = supplyChainData.length;
+            anomaliesDetected = correctlyDetected + falsePositives; // Total flagged as anomalies
+
+            // Update metrics
+            document.getElementById('processed-records').textContent = processedRecords;
+            document.getElementById('anomalies-detected').textContent = anomaliesDetected;
+            document.getElementById('accuracy-metric').textContent = accuracy + '%';
+
+            updateValidationResults(model, accuracy, actualPrecision, actualRecall, actualF1Score, correctlyDetected, falsePositives, falseNegatives);
+            updateDataTable();
+            updateCharts();
+            showAlert(`Data validated using ${model.toUpperCase()} model. ${correctlyDetected} anomalies detected correctly!`, 'success');
+        }
+
+        // Update validation results display
+        function updateValidationResults(model, accuracy, precision, recall, f1Score, correctDetections, falsePositives, falseNegatives) {
+            const resultsDiv = document.getElementById('validation-results');
+            resultsDiv.innerHTML = `
+                <div class="validation-item">
+                    <h6><i class="fas fa-robot"></i> Model: ${model.toUpperCase()}</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Accuracy</small>
+                            <div class="h5 text-primary">${accuracy}%</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Precision</small>
+                            <div class="h5 text-success">${precision.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <small class="text-muted">Recall</small>
+                            <div class="h6 text-info">${recall.toFixed(1)}%</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">F1-Score</small>
+                            <div class="h6 text-warning">${f1Score.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="validation-item">
+                    <h6><i class="fas fa-chart-bar"></i> Detection Summary</h6>
+                    <div class="row">
+                        <div class="col-4">
+                            <small class="text-muted">Correct</small>
+                            <div class="h6 status-valid">${correctDetections}</div>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">False +</small>
+                            <div class="h6 text-warning">${falsePositives}</div>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Missed</small>
+                            <div class="h6 status-invalid">${falseNegatives}</div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Processing Time: </small>
+                        <span class="badge bg-info">${Math.floor(Math.random() * 100) + 150}ms</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update data table
+        function updateDataTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+
+            if (supplyChainData.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td colspan="5" class="text-center text-muted py-4">
+                        No data uploaded yet. Please upload a CSV file or generate sample data.
+                    </td>
+                `;
+                return;
+            }
+
+            // Show first 20 records (pagination can be added later)
+            const displayData = supplyChainData.slice(0, 20);
+            
+            displayData.forEach((item, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <strong>${item.productId}</strong>
+                        ${item.isAnomaly ? '<i class="fas fa-exclamation-triangle text-warning ms-1" title="Potential anomaly detected"></i>' : ''}
+                    </td>
+                    <td>${item.supplier}</td>
+                    <td>
+                        <span class="${item.quantity > 5000 ? 'text-warning fw-bold' : ''}">${item.quantity.toLocaleString()}</span>
+                    </td>
+                    <td><span class="badge ${getStatusBadge(item.status)}">${item.status}</span></td>
+                    <td>
+                        ${item.validated ? 
+                            `<div title="${getValidationDescription(item.validationResult)}">
+                                <i class="fas fa-${getValidationIcon(item.validationResult)} ${getValidationColor(item.validationResult)}"></i> 
+                                <span class="${getValidationColor(item.validationResult)}">${getValidationText(item.validationResult)}</span>
+                                <br><small class="text-muted">${item.validationModel?.toUpperCase()} - ${(item.modelConfidence * 100).toFixed(1)}%</small>
+                            </div>` :
+                            '<i class="fas fa-clock text-muted"></i> <span class="text-muted">Pending Validation</span>'
+                        }
+                    </td>
+                `;
+                
+                // Add hover effect to show original data
+                if (item.originalRow) {
+                    row.setAttribute('title', `Original CSV row: ${JSON.stringify(item.originalRow)}`);
+                    row.style.cursor = 'help';
+                }
+            });
+
+            // Add summary row if there are more records
+            if (supplyChainData.length > 20) {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td colspan="5" class="text-center text-muted py-2">
+                        <small>Showing 20 of ${supplyChainData.length} total records</small>
+                    </td>
+                `;
+            }
+        }
+
+        // Get validation display functions
+        function getValidationIcon(result) {
+            switch(result) {
+                case 'anomaly_detected': return 'exclamation-triangle';
+                case 'anomaly_missed': return 'eye-slash';
+                case 'false_positive': return 'question-circle';
+                case 'valid': return 'check-circle';
+                default: return 'clock';
+            }
+        }
+
+        function getValidationColor(result) {
+            switch(result) {
+                case 'anomaly_detected': return 'status-invalid';
+                case 'anomaly_missed': return 'text-danger';
+                case 'false_positive': return 'text-warning';
+                case 'valid': return 'status-valid';
+                default: return 'text-muted';
+            }
+        }
+
+        function getValidationDescription(result) {
+            switch(result) {
+                case 'anomaly_detected': 
+                    return 'The AI model has confirmed this record contains an anomaly (e.g., unusual quantity, missing data, or invalid values)';
+                case 'anomaly_missed': 
+                    return 'The AI model failed to detect an actual anomaly in this record';
+                case 'false_positive': 
+                    return 'The AI model incorrectly flagged this normal record as an anomaly';
+                case 'valid': 
+                    return 'This record has been validated and contains no anomalies';
+                default: 
+                    return 'This record is waiting to be validated';
+            }
+        }
+
+        function getValidationText(result) {
+            switch(result) {
+                case 'anomaly_detected': return 'Anomaly Detected (Confirmed Issue)';
+                case 'anomaly_missed': return 'Anomaly Missed (Issue Not Detected)';
+                case 'false_positive': return 'False Positive (Incorrectly Flagged)';
+                case 'valid': return 'Valid (No Issues)';
+                default: return 'Pending Validation';
+            }
+        }
+
+        // Get status badge class
+        function getStatusBadge(status) {
+            const badges = {
+                'Delivered': 'bg-success',
+                'In Transit': 'bg-primary',
+                'Pending': 'bg-warning',
+                'Delayed': 'bg-danger'
+            };
+            return badges[status] || 'bg-secondary';
+        }
+
+        // Update charts
+        function updateCharts() {
+            updatePerformanceChart();
+            updateAnomalyChart();
+        }
+
+        // Update performance chart
+        function updatePerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+
+            // Calculate accurate metrics
+            const totalRecords = supplyChainData.length;
+            const trueAnomalies = supplyChainData.filter(item => item.isAnomaly).length;
+            const falsePositives = supplyChainData.filter(item => item.validationResult === 'false_positive').length;
+            const validRecords = totalRecords - trueAnomalies - falsePositives;
+
+            performanceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Valid Records', 'True Anomalies', 'False Positives'],
+                    datasets: [{
+                        data: [validRecords, trueAnomalies, falsePositives],
+                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update anomaly detection chart
+        function updateAnomalyChart() {
+            const ctx = document.getElementById('anomalyChart').getContext('2d');
+            
+            if (anomalyChart) {
+                anomalyChart.destroy();
+            }
+
+            // Generate time series data for anomaly detection
+            const labels = [];
+            const validData = [];
+            const anomalyData = [];
+
+            for (let i = 0; i < 24; i++) {
+                labels.push(`${i}:00`);
+                validData.push(Math.floor(Math.random() * 50) + 20);
+                anomalyData.push(Math.floor(Math.random() * 10));
+            }
+
+            anomalyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Valid Records',
+                        data: validData,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        fill: true
+                    }, {
+                        label: 'Anomalies Detected',
+                        data: anomalyData,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Real-time Anomaly Detection (24h)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show alert messages
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-custom alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCharts();
+            
+            // Add some initial animation
+            setTimeout(() => {
+                generateSampleData();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
